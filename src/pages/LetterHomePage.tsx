@@ -12,12 +12,8 @@ export function LetterHomePage() {
         className="text-center"
       >
         <BrandMark size="lg" as="h1" />
-        <p className="mt-6 text-xl sm:text-2xl text-ink/70 font-light leading-snug">
-          15 minutes every Sunday.
-        </p>
-        <p className="mt-4 text-muted max-w-xl mx-auto leading-relaxed">
-          AI signal, labor-market context, and one thing to build — personalized to your
-          path. From dear[CC].
+        <p className="mt-6 text-xl sm:text-2xl text-ink/70 font-light leading-snug max-w-xl mx-auto">
+          Get up to speed on Industry, AI and Technology news in 15 minutes every Sunday.
         </p>
       </motion.div>
 

@@ -27,6 +27,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: typeof body.name === 'string' ? body.name : null,
       focusAreas: Array.isArray(body.focusAreas) ? body.focusAreas : null,
       sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
+      linkedinUrl: typeof body.linkedinUrl === 'string' ? body.linkedinUrl : null,
+      targetJob: typeof body.targetJob === 'string' ? body.targetJob : null,
     })
 
     if (!result.ok) {

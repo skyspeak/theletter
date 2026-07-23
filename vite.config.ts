@@ -69,6 +69,9 @@ function localApiPlugin(): Plugin {
                 ? (body.focusAreas as string[])
                 : null,
               sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
+              linkedinUrl:
+                typeof body.linkedinUrl === 'string' ? body.linkedinUrl : null,
+              targetJob: typeof body.targetJob === 'string' ? body.targetJob : null,
             })
             if (!result.ok) {
               sendJson(res, result.status, { error: result.error })
