@@ -12,8 +12,14 @@ model NewsletterSubscriber {
   email              String    @unique
   name               String?
   role               String?
+  company            String?
   industry           String?
   focusAreas         String[]  @default([])
+  seniority          String?
+  technicalLevel     String?   @default("some")
+  preferredTools     String[]  @default([])
+  about              String?
+  experienceSummary  String?
   linkedinUrl        String?
   targetJob          String?
   cohortWaitlistedAt DateTime?

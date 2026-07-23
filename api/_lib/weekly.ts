@@ -1,7 +1,7 @@
 import { prisma } from './db.js'
-import { buildWeeklyIssueContent } from './compose.js'
+import { composeWeeklyIssue } from './compose.js'
 import { sendLetterEmail } from './email.js'
-import { buildWeeklyNewsletterEmail } from './letter_email.js'
+import { buildCuratedWeeklyEmail, buildWeeklyNewsletterEmail } from './letter_email.js'
 
 const COOLDOWN_MS = 6 * 24 * 60 * 60 * 1000
 
@@ -53,17 +53,33 @@ export async function sendWeeklyNewsletter(
     }
 
     try {
-      const content = await buildWeeklyIssueContent({
+      const composed = await composeWeeklyIssue({
+        email: sub.email,
         name: sub.name,
         role: sub.role,
         industry: sub.industry,
         focusAreas: sub.focusAreas,
+        company: sub.company,
+        seniority: sub.seniority,
+        technicalLevel: sub.technicalLevel,
+        preferredTools: sub.preferredTools,
+        about: sub.about,
+        experienceSummary: sub.experienceSummary,
       })
-      const mail = buildWeeklyNewsletterEmail({
-        content,
-        unsubscribeToken: sub.unsubscribeToken,
-        date: now,
-      })
+
+      const mail =
+        composed.mode === 'curated'
+          ? buildCuratedWeeklyEmail({
+              payload: composed.payload,
+              unsubscribeToken: sub.unsubscribeToken,
+              role: sub.role,
+              date: now,
+            })
+          : buildWeeklyNewsletterEmail({
+              content: composed.content,
+              unsubscribeToken: sub.unsubscribeToken,
+              date: now,
+            })
 
       if (!opts.dryRun) {
         if (!process.env.RESEND_API_KEY) {

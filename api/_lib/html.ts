@@ -21,6 +21,24 @@ export function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
+export function safeHttpUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString()
+  } catch {
+    /* ignore */
+  }
+  return '#'
+}
+
+export function shortHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
 /** Allow Field Report (and local) origins to POST /api/subscribe */
 export function applyCors(
   req: { headers?: { origin?: string } },
