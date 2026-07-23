@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../api/_lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model NewsletterSubscriber {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  role               String?
+  industry           String?
+  focusAreas         String[]  @default([])
+  linkedinUrl        String?
+  targetJob          String?
+  cohortWaitlistedAt DateTime?
+  unsubscribeToken   String    @unique @default(cuid())
+  unsubscribedAt     DateTime?
+  welcomeSentAt      DateTime?
+  lastIssueSentAt    DateTime?
+  sourceRef          String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([email])
+  @@map("newsletter_subscribers")
+}
+
+model GamePlan {
+  id          String   @id @default(cuid())
+  email       String
+  linkedinUrl String?
+  jobInput    String
+  jobDetail   String?
+  jobSubject  String?
+  focusNote   String?
+  matchedSoc  String?
+  analysis    Json
+  roadmap     Json
+  fromLetter  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@map("game_plans")
+}

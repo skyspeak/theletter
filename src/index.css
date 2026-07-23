@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-ink: #141414;
+  --color-surface: #f4f4f5;
+  --color-surface-hover: #e4e4e7;
+  --color-border: #e4e4e7;
+  --color-border-bright: #d4d4d8;
+  --color-primary: #d4552f;
+  --color-primary-bright: #ec6f4c;
+  --color-muted: #71717a;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: #ffffff;
+    background-image:
+      radial-gradient(ellipse 90% 55% at 50% -25%, rgba(212, 85, 47, 0.1), transparent),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(228, 228, 231, 0.7), transparent);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Avoid iOS zoom-on-focus for inputs under 16px in some contexts */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: inherit;
+    }
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 28%, transparent);
+  }
+}
