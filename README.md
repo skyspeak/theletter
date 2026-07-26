@@ -1,6 +1,6 @@
 # dear[CC] The Letter
 
-Weekly AI + career email with StayRelevant-style curation (real article pools + OpenRouter). Optional Game Plan. Enroll from this site or Field Report via CORS.
+Weekly AI + career email with StayRelevant-style curation (real article pools + OpenRouter). **Game Plan** (`/plan/*`) ships in this same app and **shares one Neon Postgres** (`DATABASE_URL`) — tables `newsletter_subscribers` + `game_plans`. Enroll from this site or Field Report via CORS.
 
 ## Develop
 
@@ -21,9 +21,9 @@ Without `OPENROUTER_API_KEY`, the Sunday cron falls back to rotating templates.
 
 ## Deploy (Vercel)
 
-Import [skyspeak/theletter](https://github.com/skyspeak/theletter). Set env from `.env.example`. Cron: `0 14 * * 0` → `/api/cron/newsletter`.
+Import [skyspeak/theletter](https://github.com/skyspeak/theletter). Set env from `.env.example` — **one** `DATABASE_URL` covers Letter + Game Plan. Cron: `0 14 * * 0` → `/api/cron/newsletter`.
 
-Field Report should set `VITE_LETTER_URL` to this deployment so Results/Map can enroll readers.
+Field Report should set `VITE_LETTER_URL` to this deployment so Results/Map can enroll readers (and deep-link into `/plan`).
 
 ## Stack
 
