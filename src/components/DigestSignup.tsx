@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PLAN_EMAIL_KEY } from '../lib/planTypes'
+import { useEnterAction } from '../lib/useEnterAction'
 
 export type DigestSignupProps = {
   industry?: string
@@ -37,11 +38,11 @@ const fieldClass =
   'w-full rounded-xl border border-border-bright bg-white px-4 py-3 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60'
 
 const customFieldClass =
-  'w-full max-w-xs rounded-lg border border-border-bright bg-white px-3 py-2 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60'
+  'w-full rounded-lg border border-border-bright bg-white px-3 py-2.5 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60'
 
 function tagClass(selected: boolean) {
   return [
-    'rounded-lg border px-3 py-1.5 text-sm transition-colors',
+    'rounded-lg border px-3 py-2.5 sm:py-1.5 text-sm transition-colors min-h-11 sm:min-h-0',
     selected
       ? 'border-primary bg-primary/10 text-ink'
       : 'border-border-bright bg-white text-muted hover:border-primary/40 hover:text-ink',
@@ -107,6 +108,13 @@ function TagMulti({
     }
   }
 
+  function onTagKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      e.currentTarget.form?.requestSubmit()
+    }
+  }
+
   return (
     <div>
       <p className="mb-2.5 text-base sm:text-lg font-medium text-ink">{label}</p>
@@ -118,6 +126,7 @@ function TagMulti({
             disabled={disabled}
             aria-pressed={selected.includes(opt)}
             onClick={() => toggle(opt)}
+            onKeyDown={onTagKeyDown}
             className={tagClass(selected.includes(opt))}
           >
             {opt}
@@ -128,6 +137,7 @@ function TagMulti({
           disabled={disabled}
           aria-pressed={writeOwnOn}
           onClick={() => toggle(WRITE_OWN)}
+          onKeyDown={onTagKeyDown}
           className={tagClass(writeOwnOn)}
         >
           {WRITE_OWN}
@@ -137,6 +147,7 @@ function TagMulti({
           disabled={disabled}
           aria-pressed={dontKnowOn}
           onClick={() => toggle(DONT_KNOW)}
+          onKeyDown={onTagKeyDown}
           className={tagClass(dontKnowOn)}
         >
           {DONT_KNOW}
@@ -179,6 +190,7 @@ export function DigestSignup({
   focusAreas,
   sourceRef,
 }: DigestSignupProps) {
+  const navigate = useNavigate()
   const [step, setStep] = useState<Step>('email')
   const [status, setStatus] = useState<Status>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -190,6 +202,9 @@ export function DigestSignup({
   const [industryCustom, setIndustryCustom] = useState('')
   const [roles, setRoles] = useState<string[]>(() => seedFromProp(roleProp, ROLE_OPTIONS))
   const [roleCustom, setRoleCustom] = useState('')
+
+  const goToPlan = useCallback(() => navigate('/plan'), [navigate])
+  useEnterAction(goToPlan, step === 'done')
 
   async function postSubscribe(body: Record<string, unknown>) {
     const res = await fetch('/api/subscribe', {
@@ -291,16 +306,17 @@ export function DigestSignup({
                 type="email"
                 required
                 autoComplete="email"
+                autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@school.edu"
                 disabled={status === 'sending'}
-                className={`${fieldClass} flex-1`}
+                className={`${fieldClass} flex-1 min-w-0`}
               />
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="shrink-0 rounded-xl bg-primary px-5 py-3 font-medium text-white hover:bg-primary-bright disabled:opacity-50"
+                className="w-full sm:w-auto shrink-0 rounded-xl bg-primary px-5 py-3.5 sm:py-3 font-medium text-white hover:bg-primary-bright disabled:opacity-50"
               >
                 {status === 'sending' ? 'Sending…' : 'Send my first letter'}
               </button>
@@ -369,11 +385,11 @@ export function DigestSignup({
                   className={fieldClass}
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  className="rounded-xl bg-primary px-5 py-3 font-medium text-white hover:bg-primary-bright disabled:opacity-50"
+                  className="w-full sm:w-auto rounded-xl bg-primary px-5 py-3.5 sm:py-3 font-medium text-white hover:bg-primary-bright disabled:opacity-50"
                 >
                   {status === 'sending' ? 'Saving…' : 'Personalize my letter'}
                 </button>
@@ -381,7 +397,7 @@ export function DigestSignup({
                   type="button"
                   onClick={skipProfile}
                   disabled={status === 'sending'}
-                  className="rounded-xl px-4 py-3 text-sm text-muted hover:text-ink"
+                  className="w-full sm:w-auto rounded-xl px-4 py-3 text-sm text-muted hover:text-ink"
                 >
                   Nevermind, I don't want to personalize
                 </button>
@@ -406,7 +422,7 @@ export function DigestSignup({
             </p>
             <Link
               to="/plan"
-              className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-bright"
+              className="mt-4 inline-flex w-full sm:w-auto justify-center rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white hover:bg-primary-bright"
             >
               Build your Game Plan →
             </Link>

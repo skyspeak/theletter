@@ -17,15 +17,15 @@ function CopyBlock({ text }: { text: string }) {
     }
   }
   return (
-    <div className="mt-3 rounded-lg border border-border bg-surface p-3">
-      <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-ink/80">
+    <div className="mt-3 rounded-lg border border-border bg-surface p-3" data-no-enter-action>
+      <pre className="whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-ink/80">
         {text}
       </pre>
       <div className="mt-2 flex justify-end">
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-md border border-primary/30 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5"
+          className="min-h-11 sm:min-h-0 rounded-md border border-primary/30 px-3 py-2 sm:px-2.5 sm:py-1 text-xs font-semibold text-primary hover:bg-primary/5"
         >
           {copied ? 'Copied' : 'Copy'}
         </button>
@@ -44,10 +44,10 @@ function MilestoneCard({ m }: { m: RoadmapMilestone }) {
 
   return (
     <li className={`rounded-xl border p-4 ${border}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-2.5 min-w-0">
           <span
-            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
+            className={`mt-0.5 inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${
               m.tone === 'primary'
                 ? 'bg-primary text-white'
                 : m.tone === 'success'
@@ -60,7 +60,7 @@ function MilestoneCard({ m }: { m: RoadmapMilestone }) {
           <h3 className="font-medium text-ink">{m.title}</h3>
         </div>
         {m.badge ? (
-          <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-muted">
+          <span className="self-start rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-muted">
             {m.badge}
           </span>
         ) : null}
@@ -70,8 +70,8 @@ function MilestoneCard({ m }: { m: RoadmapMilestone }) {
         <ul className="mt-3 space-y-2">
           {m.bullets.map((b) => (
             <li key={b} className="flex gap-2 text-sm text-ink/80 leading-relaxed">
-              <span className="text-primary font-bold">✓</span>
-              <span>{b}</span>
+              <span className="text-primary font-bold shrink-0">✓</span>
+              <span className="min-w-0">{b}</span>
             </li>
           ))}
         </ul>
@@ -88,7 +88,7 @@ export function PlanRoadmapPage() {
   const { roadmap } = plan
 
   return (
-    <div className="mx-auto max-w-xl px-4 sm:px-6 py-10 sm:py-14">
+    <div className="mx-auto max-w-xl px-4 sm:px-6 py-8 sm:py-14">
       <PlanSteps active="roadmap" />
 
       <motion.div
@@ -99,7 +99,7 @@ export function PlanRoadmapPage() {
         <p className="text-xs uppercase tracking-wider text-primary font-mono font-medium">
           {roadmap.eyebrow}
         </p>
-        <h1 className="mt-1 font-serif text-3xl text-ink tracking-tight">Your roadmap</h1>
+        <h1 className="mt-1 font-serif text-2xl sm:text-3xl text-ink tracking-tight">Your roadmap</h1>
         <p className="mt-2 text-sm text-muted">
           Jump to wherever you are. Each step works on its own.
         </p>
@@ -113,14 +113,14 @@ export function PlanRoadmapPage() {
         <div className="mt-6 rounded-xl bg-primary/5 border border-primary/20 px-4 py-4 text-sm text-primary leading-relaxed">
           You&apos;re enrolled in <span className="font-semibold">The Letter</span> — weekly AI
           career intelligence while you work.{' '}
-          <Link to="/" className="font-semibold underline underline-offset-2">
+          <Link to="/" className="font-semibold underline underline-offset-2 inline-block py-1">
             Back to Field Report
           </Link>
         </div>
 
         <Link
           to={`/plan/waitlist?email=${encodeURIComponent(plan.email)}`}
-          className="mt-4 block text-center text-sm font-medium text-primary hover:text-primary-bright underline"
+          className="mt-4 block text-center text-sm font-medium text-primary hover:text-primary-bright underline py-2"
         >
           Or join the October cohort waitlist →
         </Link>

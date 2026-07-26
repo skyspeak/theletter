@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PlanSteps } from '../components/plan/PlanSteps'
@@ -85,8 +85,15 @@ export function PlanConnectPage() {
     navigate(`/plan/building?${qs.toString()}`)
   }
 
+  function onFocusKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      e.currentTarget.form?.requestSubmit()
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-xl px-4 sm:px-6 py-10 sm:py-14">
+    <div className="mx-auto max-w-xl px-4 sm:px-6 py-8 sm:py-14">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -95,15 +102,15 @@ export function PlanConnectPage() {
         <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
           Part 3 · Game Plan
         </p>
-        <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
+        <h1 className="font-serif text-2xl sm:text-4xl text-ink tracking-tight">
           Let&apos;s build your Game Plan
         </h1>
-        <p className="mt-3 text-muted leading-relaxed">
+        <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
           Paste the job you&apos;re going after. We&apos;ll match it to labor-market data
           and map the gaps against your Letter profile.
         </p>
 
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <PlanSteps active="connect" />
         </div>
 
@@ -119,17 +126,17 @@ export function PlanConnectPage() {
 
         {useLetterProfile && profile ? (
           <div className="mb-6 rounded-xl border border-border bg-surface px-4 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-ink">Using your profile from The Letter</p>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-sm text-muted break-words">
                   {profile.email}
                   {profile.role ? ` · ${profile.role}` : ''}
                 </p>
               </div>
               <button
                 type="button"
-                className="text-sm text-primary underline underline-offset-2 shrink-0"
+                className="self-start text-sm text-primary underline underline-offset-2 shrink-0 min-h-11 sm:min-h-0 py-2 sm:py-0"
                 onClick={() => setUseLetterProfile(false)}
               >
                 Not you?
@@ -149,10 +156,11 @@ export function PlanConnectPage() {
                   id="plan-linkedin"
                   type="text"
                   required
+                  autoFocus={!useLetterProfile}
                   value={linkedin}
                   onChange={(e) => setLinkedin(e.target.value)}
                   placeholder="linkedin.com/in/your-profile"
-                  className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3.5 sm:py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <p className="mt-1.5 text-xs text-muted">
                   We store the URL for context — we do not scrape LinkedIn.
@@ -170,7 +178,7 @@ export function PlanConnectPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@email.com"
-                  className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3.5 sm:py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </>
@@ -184,10 +192,11 @@ export function PlanConnectPage() {
               id="plan-job"
               type="text"
               required
+              autoFocus={useLetterProfile}
               value={job}
               onChange={(e) => setJob(e.target.value)}
               placeholder="https://jobs.ashbyhq.com/… or Senior PM at a fintech"
-              className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-2 w-full rounded-xl border border-border-bright bg-white px-4 py-3.5 sm:py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="mt-1.5 text-xs text-muted">
               Paste a job URL for the best match, or describe the role.
@@ -204,9 +213,11 @@ export function PlanConnectPage() {
                 rows={3}
                 value={focusNote}
                 onChange={(e) => setFocusNote(e.target.value)}
+                onKeyDown={onFocusKeyDown}
                 placeholder="I've applied to 20 jobs and can't seem to land an interview…"
                 className="mt-2 w-full resize-y rounded-xl border border-border-bright bg-white px-4 py-3 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <p className="mt-1.5 text-xs text-muted">⌘/Ctrl + Enter to submit</p>
             </div>
           ) : null}
 
@@ -219,7 +230,7 @@ export function PlanConnectPage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-muted">
-          <Link to="/" className="text-primary hover:text-primary-bright underline">
+          <Link to="/" className="text-primary hover:text-primary-bright underline inline-block py-2">
             ← Back to Field Report
           </Link>
         </p>

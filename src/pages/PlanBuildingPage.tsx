@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PlanSteps } from '../components/plan/PlanSteps'
@@ -6,6 +6,7 @@ import { parseJob } from '../lib/parseJob'
 import { usePlan } from '../data/PlanContext'
 import type { PlanResult } from '../lib/planTypes'
 import { PLAN_EMAIL_KEY } from '../lib/planTypes'
+import { useEnterAction } from '../lib/useEnterAction'
 
 type StepState = 'done' | 'running' | 'todo'
 
@@ -25,6 +26,9 @@ export function PlanBuildingPage() {
   const [phase, setPhase] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
+
+  const goToAnalysis = useCallback(() => navigate('/plan/analysis'), [navigate])
+  useEnterAction(goToAnalysis, !error && phase >= 4)
 
   useEffect(() => {
     if (!email || !job) {
@@ -108,46 +112,46 @@ export function PlanBuildingPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-xl px-4 sm:px-6 py-10 sm:py-14">
+    <div className="mx-auto max-w-xl px-4 sm:px-6 py-8 sm:py-14">
       <PlanSteps active="building" />
 
       <div className="flex flex-col items-center text-center">
         {error ? (
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600 text-2xl">
+          <span className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-50 text-red-600 text-2xl">
             !
           </span>
         ) : phase >= 4 ? (
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl font-bold">
+          <span className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl font-bold">
             ✓
           </span>
         ) : (
           <span
-            className="h-16 w-16 animate-spin rounded-full border-4 border-primary/15 border-t-primary"
+            className="h-14 w-14 sm:h-16 sm:w-16 animate-spin rounded-full border-4 border-primary/15 border-t-primary"
             role="status"
             aria-label="Building your Game Plan"
           />
         )}
 
-        <h1 className="mt-6 font-serif text-3xl text-ink tracking-tight">
+        <h1 className="mt-6 font-serif text-2xl sm:text-3xl text-ink tracking-tight px-1">
           {error
             ? 'Could not build your plan'
             : phase >= 4
               ? 'Your Game Plan is ready'
               : 'Building your Game Plan…'}
         </h1>
-        <p className="mt-2 text-muted">
+        <p className="mt-2 text-sm sm:text-base text-muted px-1">
           {error ? (
             error
           ) : (
             <>
               Mapping your gaps against{' '}
-              <span className="font-medium text-primary">{parsed.subject}</span>
+              <span className="font-medium text-primary break-words">{parsed.subject}</span>
             </>
           )}
         </p>
       </div>
 
-      <ul className="mt-10 divide-y divide-border">
+      <ul className="mt-8 sm:mt-10 divide-y divide-border">
         {rows.map((row) => {
           const state = rowState(row.index)
           return (
@@ -164,32 +168,34 @@ export function PlanBuildingPage() {
                 {state === 'done' ? '✓' : state === 'running' ? '…' : '·'}
               </span>
               <div className="min-w-0 flex-1 text-left">
+                <div className="flex items-start justify-between gap-2">
+                  <p
+                    className={`text-[15px] font-medium ${
+                      state === 'todo' ? 'text-muted' : 'text-ink'
+                    }`}
+                  >
+                    {row.title}
+                  </p>
+                  <span
+                    className={`shrink-0 text-xs sm:text-sm font-medium ${
+                      state === 'done'
+                        ? 'text-primary'
+                        : state === 'running'
+                          ? 'text-primary'
+                          : 'text-muted'
+                    }`}
+                  >
+                    {state === 'done' ? 'Done' : state === 'running' ? 'Running' : 'Up next'}
+                  </span>
+                </div>
                 <p
-                  className={`text-[15px] font-medium ${
-                    state === 'todo' ? 'text-muted' : 'text-ink'
-                  }`}
-                >
-                  {row.title}
-                </p>
-                <p
-                  className={`mt-0.5 text-sm ${
+                  className={`mt-0.5 text-sm break-words ${
                     state === 'running' ? 'text-primary' : 'text-muted'
                   }`}
                 >
                   {row.detail}
                 </p>
               </div>
-              <span
-                className={`text-sm font-medium ${
-                  state === 'done'
-                    ? 'text-primary'
-                    : state === 'running'
-                      ? 'text-primary'
-                      : 'text-muted'
-                }`}
-              >
-                {state === 'done' ? 'Done' : state === 'running' ? 'Running' : 'Up next'}
-              </span>
             </li>
           )
         })}
@@ -199,13 +205,13 @@ export function PlanBuildingPage() {
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Link
             to="/plan"
-            className="rounded-xl bg-primary px-5 py-3 text-center font-medium text-white hover:bg-primary-bright"
+            className="rounded-xl bg-primary px-5 py-3.5 text-center font-medium text-white hover:bg-primary-bright"
           >
             Try again
           </Link>
           <Link
             to="/"
-            className="rounded-xl border border-border-bright px-5 py-3 text-center font-medium text-ink hover:bg-surface"
+            className="rounded-xl border border-border-bright px-5 py-3.5 text-center font-medium text-ink hover:bg-surface"
           >
             Back to Field Report
           </Link>
@@ -217,7 +223,7 @@ export function PlanBuildingPage() {
           type="button"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          onClick={() => navigate('/plan/analysis')}
+          onClick={goToAnalysis}
           className="mt-8 w-full rounded-xl bg-primary px-5 py-3.5 font-medium text-white hover:bg-primary-bright"
         >
           See my Game Plan →

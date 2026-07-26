@@ -10,25 +10,28 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-4">
-          <Link to="/" className="no-underline shrink-0">
-            <BrandMark size="sm" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <Link to="/" className="no-underline shrink-0 min-w-0">
+            <BrandMark size="sm" compact />
           </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <Link to="/plan" className="text-muted hover:text-ink">
+          <nav className="flex items-center gap-3 sm:gap-4 text-sm shrink-0">
+            <Link to="/plan" className="text-muted hover:text-ink py-2 min-h-11 sm:min-h-0 inline-flex items-center">
               Game Plan
             </Link>
             {fieldReportUrl && (
-              <a href={fieldReportUrl} className="text-muted hover:text-ink">
+              <a
+                href={fieldReportUrl}
+                className="text-muted hover:text-ink py-2 min-h-11 sm:min-h-0 inline-flex items-center"
+              >
                 Field Report
               </a>
             )}
-          </div>
+          </nav>
         </div>
       </header>
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0 w-full">{children}</main>
       <footer className="border-t border-border mt-auto bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 text-sm">
           <p className="font-serif text-ink/70">
             © {new Date().getFullYear()} dear[CC] The Letter
           </p>

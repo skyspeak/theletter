@@ -6,16 +6,16 @@ interface BrandMarkProps {
 
 export function BrandMark({ size = 'sm', as: Tag = 'div', compact = false }: BrandMarkProps) {
   const isLg = size === 'lg'
-  const logoClass = isLg ? 'h-10 w-10 sm:h-16 sm:w-16' : 'h-7 w-7 shrink-0'
+  const logoClass = isLg ? 'h-9 w-9 sm:h-16 sm:w-16' : 'h-7 w-7 shrink-0'
 
   return (
     <Tag
       className={`inline-flex items-center gap-2 sm:gap-3 font-serif font-medium tracking-tight text-ink ${
         isLg
-          ? 'text-3xl sm:text-7xl justify-center flex-wrap text-balance'
+          ? 'text-[1.65rem] leading-tight sm:text-7xl justify-center flex-wrap text-balance'
           : compact
             ? 'text-base sm:text-xl'
-            : 'text-xl'
+            : 'text-lg sm:text-xl'
       }`}
     >
       <img
