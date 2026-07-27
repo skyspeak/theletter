@@ -147,6 +147,30 @@ function localApiPlugin(): Plugin {
             sendJson(res, 200, { ok: true, plan: result.plan })
             return
           }
+
+          const testMatch = path.match(/^\/api\/test-letter\/([^/]+)$/)
+          if ((req.method === 'GET' || req.method === 'POST') && testMatch) {
+            const { isTestLetterSecretValid, sendTestLetter } = await import(
+              './api/_lib/test_letter.js'
+            )
+            if (!isTestLetterSecretValid(decodeURIComponent(testMatch[1]))) {
+              sendJson(res, 404, { error: 'not found' })
+              return
+            }
+            const result = await sendTestLetter()
+            if (!result.ok) {
+              if (result.retryAfterSec) {
+                res.setHeader('Retry-After', String(result.retryAfterSec))
+              }
+              sendJson(res, result.status, {
+                error: result.error,
+                retryAfterSec: result.retryAfterSec,
+              })
+              return
+            }
+            sendJson(res, 200, result)
+            return
+          }
         } catch (e) {
           sendJson(res, e instanceof Error && e.message === 'invalid json' ? 400 : 500, {
             error: e instanceof Error ? e.message : 'request failed',

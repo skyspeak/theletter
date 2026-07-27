@@ -5,6 +5,9 @@
   "functions": {
     "api/cron/newsletter.ts": {
       "maxDuration": 300
+    },
+    "api/test-letter/[secret].ts": {
+      "maxDuration": 300
     }
   },
   "crons": [

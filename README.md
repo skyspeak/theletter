@@ -23,6 +23,8 @@ Without `OPENROUTER_API_KEY`, the Sunday cron falls back to rotating templates.
 
 Import [skyspeak/theletter](https://github.com/skyspeak/theletter). Set env from `.env.example` — **one** `DATABASE_URL` covers Letter + Game Plan. Cron: `0 14 * * 0` → `/api/cron/newsletter`.
 
+**Test send:** set `TEST_LETTER_SECRET`, then open `GET /api/test-letter/<secret>` — generates one issue and emails `skyspeak@gmail.com` (or `TEST_LETTER_TO`). Rate-limited to once per minute; wrong secret returns 404.
+
 Field Report should set `VITE_LETTER_URL` to this deployment so Results/Map can enroll readers (and deep-link into `/plan`).
 
 ## Stack
