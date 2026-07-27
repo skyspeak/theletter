@@ -70,18 +70,30 @@ export async function sendTestLetter(): Promise<TestLetterResult> {
   }
 
   const to = testLetterRecipient()
-  let persona = {
+  let persona: {
+    email: string
+    name: string | null
+    role: string | null
+    industry: string | null
+    focusAreas: string[]
+    company: string | null
+    seniority: string | null
+    technicalLevel: string | null
+    preferredTools: string[]
+    about: string | null
+    experienceSummary: string | null
+  } = {
     email: to,
     name: 'Sky',
     role: 'Founder',
     industry: 'Technology',
     focusAreas: ['AI literacy', 'career planning'],
-    company: null as string | null,
-    seniority: null as string | null,
-    technicalLevel: 'some' as string | null,
-    preferredTools: ['ChatGPT', 'Claude.ai'] as string[],
-    about: null as string | null,
-    experienceSummary: null as string | null,
+    company: null,
+    seniority: null,
+    technicalLevel: 'some',
+    preferredTools: ['ChatGPT', 'Claude.ai'],
+    about: null,
+    experienceSummary: null,
   }
 
   if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'mock') {
