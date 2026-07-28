@@ -49,7 +49,15 @@ function markTestAt(now: number): void {
 }
 
 export type TestLetterResult =
-  | { ok: true; to: string; mode: 'curated' | 'template'; subject: string }
+  | {
+      ok: true
+      to: string
+      mode: 'curated' | 'template'
+      subject: string
+      /** Present when mode is template — why curated gen was skipped/failed. */
+      fallbackReason?: string
+      openRouterConfigured: boolean
+    }
   | { ok: false; error: string; status: number; retryAfterSec?: number }
 
 /** Generate one weekly-style issue and send it to the test inbox. Max once / minute. */
@@ -154,5 +162,9 @@ export async function sendTestLetter(): Promise<TestLetterResult> {
     to,
     mode: composed.mode,
     subject,
+    openRouterConfigured: Boolean(process.env.OPENROUTER_API_KEY),
+    ...(composed.mode === 'template' && composed.fallbackReason
+      ? { fallbackReason: composed.fallbackReason }
+      : {}),
   }
 }

@@ -10,7 +10,7 @@ import {
 
 export type ComposeResult =
   | { mode: 'curated'; payload: IssuePayload }
-  | { mode: 'template'; content: WeeklyIssueContent }
+  | { mode: 'template'; content: WeeklyIssueContent; fallbackReason?: string }
 
 /**
  * Prefer StayRelevant-style curated generation (OpenRouter + source pools).
@@ -28,7 +28,11 @@ export async function composeWeeklyIssue(
   },
   when = new Date(),
 ): Promise<ComposeResult> {
-  if (process.env.OPENROUTER_API_KEY) {
+  let fallbackReason: string | undefined
+
+  if (!process.env.OPENROUTER_API_KEY) {
+    fallbackReason = 'OPENROUTER_API_KEY not set in this deployment'
+  } else {
     try {
       const payload = await generateCuratedIssue({
         endpoint: '/api/cron/newsletter',
@@ -51,6 +55,7 @@ export async function composeWeeklyIssue(
       })
       return { mode: 'curated', payload }
     } catch (e) {
+      fallbackReason = e instanceof Error ? e.message : 'curated generation failed'
       console.error('[compose] curated generation failed, falling back to template', e)
     }
   }
@@ -61,7 +66,7 @@ export async function composeWeeklyIssue(
     content.intro = `${greetName(persona)}, for someone exploring ${persona.role}: ${content.intro}`
   }
   void weekOfYear(when)
-  return { mode: 'template', content }
+  return { mode: 'template', content, fallbackReason }
 }
 
 /** @deprecated Prefer composeWeeklyIssue — kept for any residual callers. */
