@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-6'
+const DEFAULT_MODEL = 'openrouter/free'
 
 function client(): OpenAI {
   const apiKey = process.env.OPENROUTER_API_KEY
