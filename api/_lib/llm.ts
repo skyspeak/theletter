@@ -1,8 +1,13 @@
 import OpenAI from 'openai'
 
-// Specific free model — more reliable than openrouter/free for JSON issues.
-// Override with OPENROUTER_MODEL (must end in :free or be openrouter/free).
-const DEFAULT_MODEL = 'google/gemma-3-27b-it:free'
+// Prefer a currently free slug; free availability rotates on OpenRouter.
+const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free'
+const FREE_FALLBACKS = [
+  'google/gemma-4-26b-a4b-it:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'openai/gpt-oss-20b:free',
+  'openrouter/free',
+]
 
 function client(): OpenAI {
   const apiKey = process.env.OPENROUTER_API_KEY
@@ -23,6 +28,13 @@ function resolveModel(): string {
   return process.env.OPENROUTER_MODEL?.trim() || DEFAULT_MODEL
 }
 
+function modelCandidates(preferred?: string): string[] {
+  const primary = preferred?.trim() || resolveModel()
+  const rest = FREE_FALLBACKS.filter((m) => m !== primary)
+  // If user pinned OPENROUTER_MODEL, try that first then free fallbacks.
+  return [primary, ...rest]
+}
+
 type ChatOpts = {
   model?: string
   system?: string
@@ -32,55 +44,76 @@ type ChatOpts = {
   maxTokens?: number
 }
 
+function isUnavailableModelError(message: string): boolean {
+  const m = message.toLowerCase()
+  return (
+    m.includes('404') ||
+    m.includes('unavailable for free') ||
+    m.includes('no endpoints found') ||
+    m.includes('not found')
+  )
+}
+
 export async function chat(opts: ChatOpts): Promise<string> {
   const oa = client()
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = []
   if (opts.system) messages.push({ role: 'system', content: opts.system })
   messages.push({ role: 'user', content: opts.user })
 
-  const model = opts.model ?? resolveModel()
-  const body: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
-    model,
-    messages,
-    temperature: opts.temperature ?? 0.4,
-    max_tokens: opts.maxTokens ?? 4096,
-    ...(opts.responseFormat === 'json_object'
-      ? { response_format: { type: 'json_object' } }
-      : {}),
-  }
+  const candidates = modelCandidates(opts.model)
+  const errors: string[] = []
 
-  let res: OpenAI.Chat.Completions.ChatCompletion
-  try {
-    res = await oa.chat.completions.create(body)
-  } catch (e) {
-    // Many free models reject response_format — retry without it.
-    if (opts.responseFormat === 'json_object') {
-      const { response_format: _, ...withoutJson } = body as typeof body & {
-        response_format?: unknown
-      }
-      void _
-      try {
-        res = await oa.chat.completions.create(withoutJson)
-      } catch (e2) {
-        throw new Error(
-          `OpenRouter failed (${model}): ${e2 instanceof Error ? e2.message : String(e2)}`,
-        )
-      }
-    } else {
-      throw new Error(
-        `OpenRouter failed (${model}): ${e instanceof Error ? e.message : String(e)}`,
-      )
+  for (const model of candidates) {
+    const body: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
+      model,
+      messages,
+      temperature: opts.temperature ?? 0.4,
+      max_tokens: opts.maxTokens ?? 4096,
+      ...(opts.responseFormat === 'json_object'
+        ? { response_format: { type: 'json_object' } }
+        : {}),
     }
+
+    let res: OpenAI.Chat.Completions.ChatCompletion
+    try {
+      res = await oa.chat.completions.create(body)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      // Many free models reject response_format — retry without it.
+      if (opts.responseFormat === 'json_object') {
+        try {
+          const { response_format: _, ...withoutJson } = body as typeof body & {
+            response_format?: unknown
+          }
+          void _
+          res = await oa.chat.completions.create(withoutJson)
+        } catch (e2) {
+          const msg2 = e2 instanceof Error ? e2.message : String(e2)
+          errors.push(`${model}: ${msg2}`)
+          if (isUnavailableModelError(msg2) || isUnavailableModelError(msg)) continue
+          throw new Error(`OpenRouter failed (${model}): ${msg2}`)
+        }
+      } else {
+        errors.push(`${model}: ${msg}`)
+        if (isUnavailableModelError(msg)) continue
+        throw new Error(`OpenRouter failed (${model}): ${msg}`)
+      }
+    }
+
+    const content = res.choices?.[0]?.message?.content
+    if (typeof content === 'string' && content.trim()) return content
+
+    const errObj = res as unknown as { error?: { message?: string } }
+    const hint =
+      errObj.error?.message ||
+      (Array.isArray(res.choices) ? 'empty choices[0].message.content' : 'missing choices array')
+    errors.push(`${model}: ${hint}`)
+    if (isUnavailableModelError(hint)) continue
   }
 
-  const content = res.choices?.[0]?.message?.content
-  if (typeof content === 'string' && content.trim()) return content
-
-  const errObj = res as unknown as { error?: { message?: string } }
-  const hint =
-    errObj.error?.message ||
-    (Array.isArray(res.choices) ? 'empty choices[0].message.content' : 'missing choices array')
-  throw new Error(`OpenRouter returned no content (${model}): ${hint}`)
+  throw new Error(
+    `OpenRouter returned no usable free model. Tried: ${errors.join(' | ') || candidates.join(', ')}`,
+  )
 }
 
 export async function chatJson<T>(opts: Omit<ChatOpts, 'responseFormat'>): Promise<T> {
