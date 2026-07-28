@@ -1,6 +1,8 @@
 import OpenAI from 'openai'
 
-const DEFAULT_MODEL = 'openrouter/free'
+// Specific free model — more reliable than openrouter/free for JSON issues.
+// Override with OPENROUTER_MODEL (must end in :free or be openrouter/free).
+const DEFAULT_MODEL = 'google/gemma-3-27b-it:free'
 
 function client(): OpenAI {
   const apiKey = process.env.OPENROUTER_API_KEY
@@ -15,6 +17,10 @@ function client(): OpenAI {
     timeout: 280_000,
     maxRetries: 2,
   })
+}
+
+function resolveModel(): string {
+  return process.env.OPENROUTER_MODEL?.trim() || DEFAULT_MODEL
 }
 
 type ChatOpts = {
@@ -32,21 +38,54 @@ export async function chat(opts: ChatOpts): Promise<string> {
   if (opts.system) messages.push({ role: 'system', content: opts.system })
   messages.push({ role: 'user', content: opts.user })
 
-  const res = await oa.chat.completions.create({
-    model: opts.model ?? process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL,
+  const model = opts.model ?? resolveModel()
+  const body: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
+    model,
     messages,
     temperature: opts.temperature ?? 0.4,
     max_tokens: opts.maxTokens ?? 4096,
     ...(opts.responseFormat === 'json_object'
       ? { response_format: { type: 'json_object' } }
       : {}),
-  })
+  }
 
-  return res.choices[0]?.message?.content ?? ''
+  let res: OpenAI.Chat.Completions.ChatCompletion
+  try {
+    res = await oa.chat.completions.create(body)
+  } catch (e) {
+    // Many free models reject response_format — retry without it.
+    if (opts.responseFormat === 'json_object') {
+      const { response_format: _, ...withoutJson } = body as typeof body & {
+        response_format?: unknown
+      }
+      void _
+      try {
+        res = await oa.chat.completions.create(withoutJson)
+      } catch (e2) {
+        throw new Error(
+          `OpenRouter failed (${model}): ${e2 instanceof Error ? e2.message : String(e2)}`,
+        )
+      }
+    } else {
+      throw new Error(
+        `OpenRouter failed (${model}): ${e instanceof Error ? e.message : String(e)}`,
+      )
+    }
+  }
+
+  const content = res.choices?.[0]?.message?.content
+  if (typeof content === 'string' && content.trim()) return content
+
+  const errObj = res as unknown as { error?: { message?: string } }
+  const hint =
+    errObj.error?.message ||
+    (Array.isArray(res.choices) ? 'empty choices[0].message.content' : 'missing choices array')
+  throw new Error(`OpenRouter returned no content (${model}): ${hint}`)
 }
 
 export async function chatJson<T>(opts: Omit<ChatOpts, 'responseFormat'>): Promise<T> {
   const text = await chat({ ...opts, responseFormat: 'json_object' })
+  if (!text.trim()) throw new Error('LLM returned empty string')
   return parseJsonLoose<T>(text)
 }
 
