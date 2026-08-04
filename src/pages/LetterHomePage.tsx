@@ -1,5 +1,6 @@
 import { DigestSignup } from '../components/DigestSignup'
 import { BrandMark } from '../components/BrandMark'
+import { NewsletterPreview } from '../components/NewsletterPreview'
 import { motion } from 'framer-motion'
 
 export function LetterHomePage() {
@@ -16,6 +17,8 @@ export function LetterHomePage() {
           Get up to speed on Industry, AI and Technology news in 15 minutes every Sunday.
         </p>
       </motion.div>
+
+      <NewsletterPreview />
 
       <DigestSignup sourceRef="letter-home" />
     </div>

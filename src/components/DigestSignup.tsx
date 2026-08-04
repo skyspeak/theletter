@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PLAN_EMAIL_KEY } from '../lib/planTypes'
+import { PLAN_EMAIL_KEY, PLAN_LINKEDIN_KEY } from '../lib/planTypes'
 import { useEnterAction } from '../lib/useEnterAction'
 
 export type DigestSignupProps = {
@@ -203,7 +203,14 @@ export function DigestSignup({
   const [roles, setRoles] = useState<string[]>(() => seedFromProp(roleProp, ROLE_OPTIONS))
   const [roleCustom, setRoleCustom] = useState('')
 
-  const goToPlan = useCallback(() => navigate('/plan'), [navigate])
+  const goToPlan = useCallback(() => {
+    const qs = new URLSearchParams()
+    if (email.trim()) qs.set('email', email.trim())
+    if (linkedinUrl.trim()) qs.set('linkedin', linkedinUrl.trim())
+    qs.set('from', 'letter')
+    const s = qs.toString()
+    navigate(s ? `/plan?${s}` : '/plan')
+  }, [email, linkedinUrl, navigate])
   useEnterAction(goToPlan, step === 'done')
 
   async function postSubscribe(body: Record<string, unknown>) {
@@ -265,6 +272,14 @@ export function DigestSignup({
         role,
         sourceRef: sourceRef ?? null,
       })
+      try {
+        sessionStorage.setItem(PLAN_EMAIL_KEY, email.trim().toLowerCase())
+        if (linkedinUrl.trim()) {
+          sessionStorage.setItem(PLAN_LINKEDIN_KEY, linkedinUrl.trim())
+        }
+      } catch {
+        /* ignore */
+      }
       setStatus('idle')
       setStep('done')
     } catch (err) {
@@ -276,6 +291,15 @@ export function DigestSignup({
   function skipProfile() {
     setStep('done')
   }
+
+  const planHandoffQs = (() => {
+    const qs = new URLSearchParams()
+    if (email.trim()) qs.set('email', email.trim())
+    if (linkedinUrl.trim()) qs.set('linkedin', linkedinUrl.trim())
+    qs.set('from', 'letter')
+    const s = qs.toString()
+    return s ? `?${s}` : ''
+  })()
 
   return (
     <motion.section
@@ -421,7 +445,7 @@ export function DigestSignup({
               Check <span className="text-ink">{email}</span> — Sundays at 14:00 UTC.
             </p>
             <Link
-              to="/plan"
+              to={`/plan${planHandoffQs}`}
               className="mt-4 inline-flex w-full sm:w-auto justify-center rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white hover:bg-primary-bright"
             >
               Build your Game Plan →

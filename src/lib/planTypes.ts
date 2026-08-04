@@ -75,3 +75,5 @@ export type PlanProfile = {
 
 export const PLAN_STORAGE_KEY = 'dearcc_game_plan'
 export const PLAN_EMAIL_KEY = 'dearcc_plan_email'
+/** LinkedIn URL collected during Letter signup — reused by Game Plan intake. */
+export const PLAN_LINKEDIN_KEY = 'dearcc_plan_linkedin'

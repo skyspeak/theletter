@@ -2,34 +2,66 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PlanSteps } from '../components/plan/PlanSteps'
-import { PLAN_EMAIL_KEY, type PlanProfile } from '../lib/planTypes'
+import { PLAN_EMAIL_KEY, PLAN_LINKEDIN_KEY, type PlanProfile } from '../lib/planTypes'
 import { usePlan } from '../data/PlanContext'
+
+function readStored(key: string) {
+  try {
+    return sessionStorage.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
 
 export function PlanConnectPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const fromLetter = params.get('from') === 'letter'
   const token = params.get('t') ?? ''
+  const emailParam = params.get('email')?.trim() ?? ''
+  const linkedinParam = params.get('linkedin')?.trim() ?? ''
   const { clearPlan } = usePlan()
 
   const [profile, setProfile] = useState<PlanProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState(fromLetter && Boolean(token))
   const [profileError, setProfileError] = useState<string | null>(null)
 
-  const [email, setEmail] = useState('')
-  const [linkedin, setLinkedin] = useState('')
+  const [email, setEmail] = useState(
+    () => emailParam || readStored(PLAN_EMAIL_KEY),
+  )
+  const [linkedin, setLinkedin] = useState(
+    () => linkedinParam || readStored(PLAN_LINKEDIN_KEY),
+  )
   const [job, setJob] = useState('')
   const [focusNote, setFocusNote] = useState('')
-  const [useLetterProfile, setUseLetterProfile] = useState(fromLetter && Boolean(token))
+  const [useLetterProfile, setUseLetterProfile] = useState(
+    () =>
+      (fromLetter && Boolean(token)) ||
+      Boolean((emailParam || readStored(PLAN_EMAIL_KEY)) && (linkedinParam || readStored(PLAN_LINKEDIN_KEY))),
+  )
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(PLAN_EMAIL_KEY)
-      if (stored && !email) setEmail(stored)
-    } catch {
-      /* ignore */
+    if (token) return
+    const nextEmail = emailParam || readStored(PLAN_EMAIL_KEY)
+    const nextLinkedin = linkedinParam || readStored(PLAN_LINKEDIN_KEY)
+    if (nextEmail) setEmail(nextEmail)
+    if (nextLinkedin) setLinkedin(nextLinkedin)
+    if (nextEmail && nextLinkedin) {
+      setUseLetterProfile(true)
+      setProfile((prev) =>
+        prev ?? {
+          email: nextEmail,
+          role: null,
+          industry: null,
+          focusAreas: [],
+          sourceRef: null,
+          linkedinUrl: nextLinkedin,
+          targetJob: null,
+          name: null,
+        },
+      )
     }
-  }, [email])
+  }, [emailParam, linkedinParam, token])
 
   useEffect(() => {
     if (!fromLetter || !token) return
@@ -72,6 +104,12 @@ export function PlanConnectPage() {
     if (!useLetterProfile && !linkedin.trim()) return
 
     clearPlan()
+    try {
+      sessionStorage.setItem(PLAN_EMAIL_KEY, trimmedEmail.toLowerCase())
+      if (linkedin.trim()) sessionStorage.setItem(PLAN_LINKEDIN_KEY, linkedin.trim())
+    } catch {
+      /* ignore */
+    }
     const qs = new URLSearchParams({
       email: trimmedEmail,
       job: trimmedJob,
@@ -81,6 +119,8 @@ export function PlanConnectPage() {
     if (token && useLetterProfile) {
       qs.set('from', 'letter')
       qs.set('t', token)
+    } else if (fromLetter || useLetterProfile) {
+      qs.set('from', 'letter')
     }
     navigate(`/plan/building?${qs.toString()}`)
   }
@@ -124,15 +164,20 @@ export function PlanConnectPage() {
           </p>
         ) : null}
 
-        {useLetterProfile && profile ? (
+        {useLetterProfile && (profile || (email && linkedin)) ? (
           <div className="mb-6 rounded-xl border border-border bg-surface px-4 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-ink">Using your profile from The Letter</p>
                 <p className="mt-1 text-sm text-muted break-words">
-                  {profile.email}
-                  {profile.role ? ` · ${profile.role}` : ''}
+                  {profile?.email || email}
+                  {profile?.role ? ` · ${profile.role}` : ''}
                 </p>
+                {(profile?.linkedinUrl || linkedin) ? (
+                  <p className="mt-1 text-sm text-muted break-all">
+                    {profile?.linkedinUrl || linkedin}
+                  </p>
+                ) : null}
               </div>
               <button
                 type="button"

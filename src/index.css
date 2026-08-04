@@ -60,4 +60,24 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  /* Looping “GIF” scroll for homepage newsletter mock */
+  .newsletter-preview-scroll {
+    animation: newsletter-preview-scroll 22s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .newsletter-preview-scroll {
+      animation: none;
+    }
+  }
+}
+
+@keyframes newsletter-preview-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-48%);
+  }
 }
